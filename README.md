@@ -3,7 +3,7 @@
 
 # Download and install
 ```
-$ go get github.com/kjunmin/HashMap
+go get github.com/kjunmin/hashmap
 ```
 
 # Usage
@@ -12,11 +12,11 @@ package main
 
 import (
     "fmt"
-    "github.com/kjunmin/HashMap"
+    "github.com/kjunmin/hashmap"
 )
 
 func main() {
-	hashMap := Init(64, HashFunc)
+	hashMap := hashmap.Init(64, hashmap.HashFunc)
 
 	hashMap.Insert(1, "Test")
 	hashMap.Insert(2, 777)
