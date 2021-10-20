@@ -8,6 +8,8 @@ import (
 type Key interface{}
 type Value interface{}
 
+const DefaultLoadFactor = 0.75
+
 type HashMaper interface {
 	Insert(key Key, value Value) error
 	Get(key Key) (value Value, err error)
@@ -53,6 +55,10 @@ func (h *HashMap) Get(key Key) (value Value, err error) {
 }
 
 func (h *HashMap) Insert(key Key, value Value) error {
+	if h.LoadFactor() >= DefaultLoadFactor {
+		h.Grow()
+	}
+
 	hashKey, bucketIdx := h.hashFunc(len(h.buckets), key)
 	bucketNode := h.buckets[bucketIdx]
 	newNode := &BucketNode{
@@ -88,9 +94,33 @@ func (h *HashMap) Erase(key Key) error {
 		bucketNode = bucketNode.next
 	}
 	h.size--
+
 	return nil
 }
 
 func (h *HashMap) Count() int {
 	return h.size
+}
+
+func (h *HashMap) LoadFactor() float32 {
+	return float32(h.size) / float32(len(h.buckets))
+}
+
+func (h *HashMap) Rehash(blockSize int) {
+	buckets := make([]*BucketNode, blockSize)
+	for i, bucketNode := range h.buckets {
+		if bucketNode != nil {
+			bucketIdx := bucketNode.hashKey % uint(blockSize)
+			head := buckets[bucketIdx]
+			buckets[bucketIdx] = &BucketNode{bucketNode.hashKey, bucketNode.key, bucketNode.value, head}
+			bucketNode = bucketNode.next
+		}
+		h.buckets[i] = nil
+	}
+	h.buckets = buckets
+}
+
+func (h *HashMap) Grow() {
+	newBlockSize := len(h.buckets) * 2
+	h.Rehash(newBlockSize)
 }
